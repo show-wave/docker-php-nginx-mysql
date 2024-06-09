@@ -1,0 +1,46 @@
+services:
+  #nginx
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8000:80"
+    volumes:
+      - ./app:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    restart: unless-stopped
+    depends_on:
+      - app
+  #php
+  app:
+    build:
+      dockerfile: ./docker/php/Dockerfile
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      APP_ENV: ${APP_ENV}
+    volumes:
+      - ./app:/var/www/html
+    restart: unless-stopped
+    depends_on:
+      - mysql
+
+  #mysql
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
